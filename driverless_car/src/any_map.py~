@@ -1,0 +1,7 @@
+import cv2
+import numpy as np
+a=np.ones((500,500))*255
+cv2.imwrite("/home/rohit/scratch/src/driverless_car/maps/fivem.jpg",a)
+f=open('/home/rohit/scratch/src/driverless_car/maps/fivem.yaml', 'w') 
+f.write('image: fivem.jpg\nresolution: 1\norigin: [0.0,0.0,0.0]\noccupied_thresh: 0.65\nnegate: 0\nfree_thresh: 0.196')
+f.close()

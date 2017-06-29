@@ -1,0 +1,37 @@
+  joint_state_controller:
+    type: joint_state_controller/JointStateController
+    publish_rate: 50  
+
+  joint1_velocity_controller:
+    type: velocity_controllers/JointVelocityController
+    joint: back_left_wheel_joint
+    pid: {p: 100.0, i: 0.01, d: 10.0}
+  joint2_velocity_controller:
+    type: velocity_controllers/JointVelocityController
+    joint: back_right_wheel_joint
+    pid: {p: 100.0, i: 0.01, d: 10.0}
+
+  # we are no longer using these controllers for angular rate
+  # but we may reinstate them later
+  #front_left_steering_controller:
+  #  type: velocity_controllers/JointVelocityController
+  #  joint: front_left_steering_joint
+  #  pid: {p: 100.0, i: 0.01, d: 10.0}
+  #front_right_steering_controller:
+  #  type: velocity_controllers/JointVelocityController
+  #  joint: front_right_steering_joint
+  #  pid: {p: 100.0, i: 0.01, d: 10.0}
+
+  # permits a set point for the steering (tire) angle, which 
+  # is enforced by these position controllers. The value is
+  # set based on the dynamics of the controller, not an
+  # instantaneous set for the position
+  front_left_steering_position_controller:
+    type: position_controllers/JointPositionController
+    joint: front_left_steering_joint
+    pid: {p: 100.0, i: 0.01, d: 10.0}
+  front_right_steering_position_controller:
+    type: position_controllers/JointPositionController
+    joint: front_right_steering_joint
+    pid: {p: 100.0, i: 0.01, d: 10.0}
+

@@ -1,0 +1,63 @@
+<launch>
+	<arg name="scan_topic" default="sak/front_laser_points" />
+  <!-- Load the URDF into the ROS Parameter Server -->
+	<param name="robot_description" command="$(find xacro)/xacro.py $(find driverless_car)/urdf/catvehicle.xacro roboname:='sak'"/> 
+<!-- select any world -->
+ <!--<param name="enable_statistics" value="true" />
+    
+
+	  <arg name="paused" default="false"/>
+	  <arg name="use_sim_time" default="true"/>
+	  <arg name="gui" default="true"/>
+	  <arg name="headless" default="false"/>
+	  <arg name="debug" default="false"/>
+
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(find driverless_car)/worlds/skidpan.world"/>
+    <arg name="debug" value="$(arg debug)" />
+    <arg name="gui" value="$(arg gui)" />
+    <arg name="paused" value="$(arg paused)"/>
+    <arg name="use_sim_time" value="$(arg use_sim_time)"/>
+    <arg name="headless" value="$(arg headless)"/>
+  </include>
+
+<include file="$(find driverless_car)/launch/catvehicle.launch">
+    <arg name="init_pose" value="14 32 0 0 0 0"/>
+    <arg name="config_file" value="catvehicle_control.yaml"/>
+</include>-->
+
+<node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
+    <rosparam file="$(find driverless_car)/param/costmap_common_e2o_params.yaml" command="load" ns="global_costmap" />
+    <rosparam file="$(find driverless_car)/param/costmap_common_params.yaml" command="load" ns="local_costmap" />
+    <rosparam file="$(find driverless_car)/param/local_costmap_params.yaml" command="load" />
+    <rosparam file="$(find driverless_car)/param/global_costmap_params.yaml" command="load" />
+    <rosparam file="$(find driverless_car)/param/teb_local_planner_e2o_params.yaml" command="load" />
+    <rosparam file="$(find driverless_car)/param/move_base_params.yaml" command="load" />
+
+  
+<!--    <remap from="odom" to="$(arg odom_topic)"/> -->
+  </node>
+
+<node name="map_server" pkg="map_server" type="map_server" args="$(find driverless_car)/maps/fivem.yaml" output="screen">
+		<param name="frame_id" value="/map"/>
+	</node>
+<node pkg="tf" type="static_transform_publisher" name="static_tf" 
+    args="250 250 0 0 0 0 map odom 100" />
+<node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" respawn="false" output="screen"/>
+<node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="false" output="screen">
+    <!--<remap from="/joint_states" to="/$(arg robot_name)/joint_states" />-->
+</node>
+<!--<node pkg="amcl" type="amcl" name="amcl" output="screen">
+		<rosparam file="$(find driverless_car)/param/amcl_params.yaml" command="load" />
+
+	        <param name="initial_pose_x"            value="0"/>
+		<param name="initial_pose_y"            value="0"/>
+		<param name="initial_pose_a"            value="0"/>
+              <remap from="scan" to="$(arg scan_topic)"/>
+	</node>-->
+<node name="pcan_nav" pkg="pcan" type="nav_can.py" />
+<node name="pid_con" pkg="pid" type="controller" />
+<node name="rviz" pkg="rviz" type="rviz"  />
+
+</launch>
+

@@ -1,0 +1,5 @@
+<library path="lib/libwaypoint_planner">
+  <class name="waypoint_planner/WaypointPlanner" type="waypoint_planner::WaypointPlanner" base_class_type="nav_core::BaseGlobalPlanner">
+    <description>This is a Waypoint planner plugin by Rohit Mohan.</description>
+  </class>
+ </library>

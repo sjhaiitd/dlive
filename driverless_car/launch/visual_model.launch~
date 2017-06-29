@@ -1,0 +1,43 @@
+<launch>
+	<arg name="model" />
+  <!-- Load the URDF into the ROS Parameter Server -->
+	<param name="robot_description" command="$(find xacro)/xacro.py $(find driverless_car)/urdf/catvehicle.xacro roboname:='sak'"/> 
+<!-- select any world -->
+ <!--<param name="enable_statistics" value="true" />
+    
+
+	  <arg name="paused" default="false"/>
+	  <arg name="use_sim_time" default="true"/>
+	  <arg name="gui" default="false"/>
+	  <arg name="headless" default="false"/>
+	  <arg name="debug" default="false"/>
+
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(find driverless_car)/worlds/straight.world"/>
+    <arg name="debug" value="$(arg debug)" />
+    <arg name="gui" value="$(arg gui)" />
+    <arg name="paused" value="$(arg paused)"/>
+    <arg name="use_sim_time" value="$(arg use_sim_time)"/>
+    <arg name="headless" value="$(arg headless)"/>
+  </include>
+
+<include file="$(find driverless_car)/launch/catvehicle.launch">
+    <arg name="init_pose" value="0 0 0 0 0 0"/>
+    <arg name="config_file" value="catvehicle_control.yaml"/>
+</include>-->
+<!--<include file="$(find turtlebot_teleop)/launch/keyboard_teleop.launch"/>-->
+
+
+<node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" respawn="false" output="screen"/>
+<node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="false" output="screen">
+    <!--<remap from="/joint_states" to="/$(arg robot_name)/joint_states" />-->
+</node>
+
+
+
+
+<param name="use_gui" value="true"/>
+
+	<!-- Launch visualization in rviz -->
+	<node name="rviz" pkg="rviz" type="rviz"  />
+</launch>
