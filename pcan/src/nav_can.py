@@ -33,10 +33,13 @@ car_sp=[]
 prev_time=0.0
 first_time=0.0
 control=False
+
 m_CanRead = True
 m_IsFD = False
 f=open("logfile.save","wb")
 m_PcanHandle = PCAN_USBBUS1
+
+#initialize e2OCAN messages
 e2OCAN_RNDB = TPCANMsg()
 e2OCAN_LAMP = TPCANMsg()
 e2OCAN_STEER = TPCANMsg()
@@ -137,7 +140,6 @@ e2OCAN_WIPHORN.DATA[7] = WIPER_OFF | HORN_OFF
 
 
 def ReadMessages():
-
         global carspeed1
         global setpoint1
 	global steer_feedback
@@ -167,8 +169,7 @@ def ReadMessages():
 				        carspeed1 = int(DATA7,16)
                                         mode_select()
 
-				        setpoint= Float64(setpoint1)
-                                        
+				        setpoint= Float64(setpoint1)                                    
                                         carspeed=Float64(carspeed1)
                           
                                         pub2.publish(setpoint)						
