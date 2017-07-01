@@ -26,15 +26,14 @@ import math
 init_first=False
 fake=[]
 all_val=[]
-jk=False
-#try:     
-    #now = rospy.Time.now()
-    #listener.waitForTransform("/map", "/odom", now, rospy.Duration(1))
-    #[trans,rot] = listener.lookupTransform("/map", "/odom", now)
-#except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
-    #print "a"
-trans=[250,250,0]
-rot=[0,0,0,1]
+try:     
+    now = rospy.Time.now()
+    listener.waitForTransform("/map", "/odom", now, rospy.Duration(5))
+    [trans,rot] = listener.lookupTransform("/map", "/odom", now)
+except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
+    print "a"
+#rot=[0,0,0,1]
+#trans=[250,250]
 af=tf.transformations.euler_from_quaternion([rot[0],rot[1],rot[2],rot[3]])
 theta=af[2]
 transform=np.zeros((4,4))
@@ -50,16 +49,30 @@ decay_count=0
 goal_x=0
 goal_y=0
 goal_set_flag=False
+acc_count=0
+setp_count=0
+lnx=0.0001
+
 def callbackacc(data,args):
-    args[0].setText(str(int(data.data)))
+    global acc_count
+    acc_count+=1
+    if acc_count>10:
+        args[0].setText(str(int(data)))
+        acc_count=0
 def callbacksetp(data,args):
-    args[0].setText(str(int(data.data)))
+    global setp_count
+    setp_count+=1
+    if setp_count>10:
+        setp_count=0    
+        args[0].setText(str(int(data)))
 def callbackcmd(data,args):
+    global lnx
+    lnx=data.linear.x
     args[0].setText(str(round(data.linear.x*18/5,0)))
-    if data.angular.z<0.001:
+    if abs(data.angular.z)<0.001 or abs(data.linear.x)<0.001:
         args[1].setText(str(0))
     else:
-        args[1].setText(str(round(math.atan((1.958/data.linear.x)*data.angular.z)*180/np.pi,0)))
+        args[1].setText(str(max(-40,min(40,round(math.atan((1.958/data.linear.x)*data.angular.z)*180/np.pi,0)))))
 def callbackgoalstatus(data,args):
     global init_first
     if len(data.status_list)==1:
@@ -74,6 +87,10 @@ def callbackgoalstatus(data,args):
     elif len(data.status_list)>1:
         if data.status_list[1].status==1 :
             args[0].setText("PENDING") 
+        elif data.status_list[1].status==3:
+            args[0].setText("SUCCEEDED")
+        elif data.status_list[1].status==4:
+            args[0].setText("ABORTED")
 def callbackgoal(data,args):
     args[0].setText(str(round(data.goal.target_pose.pose.position.x,0)))
     args[1].setText(str(round(data.goal.target_pose.pose.position.y,0)))
@@ -81,9 +98,9 @@ def callbackgoal(data,args):
     fin=round((a[2]-theta)*180/np.pi,0)
     args[2].setText(str(fin))
 def callbackodom(data,args):
-    global listener,init_first,transform,decay_count,goalx,goaly,goal_set_flag
+    global listener,init_first,transform,decay_count,goalx,goaly,goal_set_flag,lnx
     decay_count+=1
-    if decay_count>10:
+    if decay_count>5:
         f=np.dot(transform,np.asarray([round(data.pose.pose.position.x,2),round(data.pose.pose.position.y,2),0,1]))
         args[0].setText(str(round(f[0],0)))
         args[1].setText(str(round(f[1],0)))
@@ -91,10 +108,10 @@ def callbackodom(data,args):
         fin=round((a[2]-theta)*180/np.pi,0)
         args[2].setText(str(fin))
         args[6].setText(str(round(data.twist.twist.linear.x*18/5,0)))
-        if data.twist.twist.angular.z<0.001:
+        if abs(data.twist.twist.angular.z)<0.001 or abs(lnx<0.001):
             args[7].setText(str(0))
         else:
-            args[7].setText(str(round(math.atan((1.958/data.twist.twist.linear.x)*data.twist.twist.angular.z)*180/np.pi,0)))
+            args[7].setText(str(round(math.atan((1.958/lnx)*data.twist.twist.angular.z)*180/np.pi,0)))
     
         if(init_first==False):
             init_first=True
@@ -365,35 +382,35 @@ def window():
     win.setGeometry(200,100,540,500)
     win.setWindowTitle("D-Live")
     win.show()
-   
+
     sys.exit( app.exec_())
     
 
 def goal_clicked():
     global fake
     win1=QtGui.QDialog()
-    g_goalsetx=QtGui.QLabel("x:")
-    g_goalsety=QtGui.QLabel("y:")
+    g_goalsetx=QtGui.QLabel("distance:")
+    #g_goalsety=QtGui.QLabel("y:")
     g_goalsetth=QtGui.QLabel("yaw:")
     g_goalsetx_val=QtGui.QLineEdit()
-    g_goalsety_val=QtGui.QLineEdit()
+    #g_goalsety_val=QtGui.QLineEdit()
     g_goalsetth_val=QtGui.QLineEdit()
     
     hbox_goalset=QtGui.QHBoxLayout()
     hbox_goalset.addWidget(g_goalsetx)
     hbox_goalset.addStretch()
     hbox_goalset.addWidget(g_goalsetx_val)
-    hbox_goalset.addStretch()
-    hbox_goalset.addWidget(g_goalsety)
-    hbox_goalset.addStretch()
-    hbox_goalset.addWidget(g_goalsety_val)
+    #hbox_goalset.addStretch()
+    #hbox_goalset.addWidget(g_goalsety)
+    #hbox_goalset.addStretch()
+    #hbox_goalset.addWidget(g_goalsety_val)
     hbox_goalset.addStretch()
     hbox_goalset.addWidget(g_goalsetth)
     hbox_goalset.addStretch()
     hbox_goalset.addWidget(g_goalsetth_val)
     fake=[]
     fake.append([g_goalsetx_val])
-    fake.append([g_goalsety_val])
+    #fake.append([g_goalsety_val])
     fake.append([g_goalsetth_val])
     enter_g=QtGui.QPushButton(win1)
     enter_g.setText("OK")
@@ -416,18 +433,18 @@ def reset_clicked():
         all_val[i].clear()
         
 def goal_pub(args):
-    global goal_set_flag,goalx,goaly
+    global goal_set_flag,goalx,goaly,all_val
     a=fake[0][0].text()
-    b=fake[1][0].text()
-    c=fake[2][0].text()
+    #b=fake[1][0].text()
+    c=fake[1][0].text()
     goal = MoveBaseGoal()
     goal.target_pose.header.frame_id="map"
     goal.target_pose.header.stamp=rospy.get_rostime() 
-    goal.target_pose.pose.position.x = float(a)
-    goal.target_pose.pose.position.y = float(b)
-    goalx=float(a)
-    goaly=float(b)
-    y=float(c)
+    goal.target_pose.pose.position.x = float(a)*cos(float(c)*np.pi/180)+float(all_val[0].text())
+    goal.target_pose.pose.position.y = float(a)*sin(float(c)*np.pi/180)+float(all_val[1].text())
+    goalx=float(a)*cos(float(c)*np.pi/180)+float(all_val[0].text())
+    goaly=float(a)*sin(float(c)*np.pi/180)+float(all_val[1].text())
+    y=float(c)*np.pi/180
     quat =tf.transformations.quaternion_from_euler(0, 0, y)
     goal.target_pose.pose.orientation.w =quat[3]
     goal.target_pose.pose.orientation.x =quat[0]
@@ -436,7 +453,7 @@ def goal_pub(args):
     # Fill in the goal here
     goal_set_flag=True
     client.send_goal(goal)
-    fake[3][0].close()
+    fake[2][0].close()
 if __name__ == '__main__':
     client = actionlib.SimpleActionClient('move_base',MoveBaseAction)
     client.wait_for_server()
