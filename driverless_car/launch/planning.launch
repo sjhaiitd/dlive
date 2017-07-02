@@ -5,13 +5,11 @@
 <!-- select any world -->
  <!--<param name="enable_statistics" value="true" />
     
-
 	  <arg name="paused" default="false"/>
 	  <arg name="use_sim_time" default="true"/>
 	  <arg name="gui" default="true"/>
 	  <arg name="headless" default="false"/>
 	  <arg name="debug" default="false"/>
-
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
     <arg name="world_name" value="$(find driverless_car)/worlds/skidpan.world"/>
     <arg name="debug" value="$(arg debug)" />
@@ -20,13 +18,13 @@
     <arg name="use_sim_time" value="$(arg use_sim_time)"/>
     <arg name="headless" value="$(arg headless)"/>
   </include>
-
 <include file="$(find driverless_car)/launch/catvehicle.launch">
     <arg name="init_pose" value="14 32 0 0 0 0"/>
     <arg name="config_file" value="catvehicle_control.yaml"/>
 </include>-->
 
 <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
+    <param name="orientation_mode" value="2.0"/>
     <rosparam file="$(find driverless_car)/param/costmap_common_e2o_params.yaml" command="load" ns="global_costmap" />
     <rosparam file="$(find driverless_car)/param/costmap_common_params.yaml" command="load" ns="local_costmap" />
     <rosparam file="$(find driverless_car)/param/local_costmap_params.yaml" command="load" />
@@ -49,15 +47,17 @@
 </node>
 <!--<node pkg="amcl" type="amcl" name="amcl" output="screen">
 		<rosparam file="$(find driverless_car)/param/amcl_params.yaml" command="load" />
-
 	        <param name="initial_pose_x"            value="0"/>
 		<param name="initial_pose_y"            value="0"/>
 		<param name="initial_pose_a"            value="0"/>
               <remap from="scan" to="$(arg scan_topic)"/>
 	</node>-->
 <node name="pcan_nav" pkg="pcan" type="nav_can.py" />
-<node name="pid_con" pkg="pid" type="controller" />
+<node name="pid_con" pkg="pid" type="controller" >
+  <param name="Kp" value="3.2" />
+  <param name="Ki" value="1.2" />
+  <param name="Kd" value="1.2" />
+</node>
 <node name="rviz" pkg="rviz" type="rviz"  />
 
 </launch>
-
